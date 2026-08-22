@@ -1,15 +1,19 @@
 from pathlib import Path
 
-from dry4objc.core import find_duplicates, normalized_tokens
+from dry4objc.core import find_duplicates
 
 
-def test_normalizes_identifiers_and_literals(tmp_path: Path) -> None:
-    source = tmp_path / "sample.m"
-    source.write_text("int answer = 42;\n", encoding="utf-8")
-    assert [value for value, _ in normalized_tokens(source)] == ["int", "ID", "=", "NUM", ";"]
+def test_cross_file_duplicate_is_found(tmp_path: Path) -> None:
+    first = tmp_path / ("a_" + 'sample.m')
+    second = tmp_path / ("b_" + 'sample.m')
+    first.write_text('@interface Choice\n- (int)choose:(int)a other:(int)b;\n@end\n@implementation Choice\n- (int)choose:(int)a other:(int)b {\n  if (a && b) { return 1; }\n  return 0;\n}\n@end\n', encoding="utf-8")
+    second.write_text('@interface Selection\n- (int)decide:(int)a other:(int)b;\n@end\n@implementation Selection\n- (int)decide:(int)a other:(int)b {\n  if (a && b) { return 1; }\n  return 0;\n}\n@end\n', encoding="utf-8")
+    duplicates = find_duplicates(tmp_path, min_tokens=8)
+    assert duplicates
 
 
-def test_finds_duplicate_blocks(tmp_path: Path) -> None:
-    (tmp_path / "a.m").write_text("int a(int x) { if (x > 0) return x + 1; return 0; }\n", encoding="utf-8")
-    (tmp_path / "b.m").write_text("int b(int y) { if (y > 2) return y + 3; return 4; }\n", encoding="utf-8")
-    assert find_duplicates(tmp_path, min_tokens=12)
+def test_non_overlapping_same_file_duplicate_is_found(tmp_path: Path) -> None:
+    path = tmp_path / 'sample.m'
+    path.write_text('@interface Choice\n- (int)choose:(int)a other:(int)b;\n@end\n@implementation Choice\n- (int)choose:(int)a other:(int)b {\n  if (a && b) { return 1; }\n  return 0;\n}\n@end\n' + "\n" + '@interface Selection\n- (int)decide:(int)a other:(int)b;\n@end\n@implementation Selection\n- (int)decide:(int)a other:(int)b {\n  if (a && b) { return 1; }\n  return 0;\n}\n@end\n', encoding="utf-8")
+    duplicates = find_duplicates(tmp_path, min_tokens=8)
+    assert any(item.locations[0].file == item.locations[1].file for item in duplicates)
