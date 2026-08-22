@@ -1,3 +1,9 @@
 # dry4objc
 
-Install with `pipx install --force git+https://github.com/lukasa1993/dry4objc.git`. Run `dry4objc --min-tokens 40 --fail` from the project root.
+Use `dry4objc` for DRY verification of Objective-C projects.
+
+1. Run `dry4objc --help` before first use.
+2. Use the project test/build commands that create current coverage or execute the full unit suite.
+3. Run the gate with `--fail`.
+4. Treat exit `1` as an infrastructure or configuration failure. Do not report it as a quality pass.
+5. Treat exit `2` as a quality-gate failure.

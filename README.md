@@ -1,17 +1,17 @@
 # dry4objc
 
-`dry4objc` finds duplicated normalized token windows in Objective-C and Objective-C++ source.
-
-## Install
+`dry4objc` finds normalized duplicate code in Objective-C projects with Tree-sitter tokens. It reports cross-file and non-overlapping same-file duplicates, extends matching windows to maximal blocks, and suppresses contained results.
 
 ```bash
 pipx install git+https://github.com/lukasa1993/dry4objc.git
+dry4objc --min-tokens 30 --fail
 ```
 
-## Run
+Exit status: `0` pass, `1` analysis error, `2` duplicates found when `--fail` is active.
+
+## Development
 
 ```bash
-dry4objc --min-tokens 40 --fail
+python -m pip install -e . pytest
+pytest -q
 ```
-
-Comments and whitespace are ignored. Identifiers, string literals, and numbers are normalized, so structurally duplicated blocks can be found after local renaming.
